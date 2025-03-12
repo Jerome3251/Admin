@@ -8,7 +8,7 @@
 
 /* Body Styling */
 body {
-    background: linear-gradient(to bottom, #8B0000, #5A2B12, #C47C2D);
+     background: linear-gradient(to bottom, #B51D1D, #143C7A);
     color: white;
     padding-top: 70px; /* To prevent navbar overlap */
 }
