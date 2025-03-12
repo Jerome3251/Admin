@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Top 5 Users Chart (Firestore)</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #chartContainer {
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Top 5 Users with Highest Points (Saved to Firestore)</h2>
+<div id="chartContainer">
+    <canvas id="topUsersChart"></canvas>
+</div>
+
+<script>
+// ✅ Your Firebase Configuration (update with your actual Firebase project details)
+const firebaseConfig = {
+      apiKey: "AIzaSyA-95tG2D_t9y-N8O4iuhJVkNCWyDGCklE",
+      authDomain: "login-register-firebase-dc2df.firebaseapp.com",
+      projectId: "login-register-firebase-dc2df",
+      storageBucket: "login-register-firebase.appspot.com",
+      messagingSenderId: "537741740420",
+      appId: "1:537741740420:web:771f22512b768ca17ab5d1"
+    };
+  
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Chart instance (so we can destroy/recreate if needed)
+let topUsersChart = null;
+
+// Fetch top 5 users from Firestore (UserPoints/Gen12), then save them to Firestore
+async function fetchAndSaveTop5UserPoints() {
+    const userPointsRef = db.collection('UserPoints').doc('Gen12');
+    const subCollections = await userPointsRef.listCollections();
+
+    const userData = [];
+
+    for (const user of subCollections) {
+        const userDoc = await userPointsRef.collection(user.id).doc('default').get();
+        if (userDoc.exists) {
+            const points = userDoc.data().points || 0;
+            userData.push({ name: user.id, points });
+        }
+    }
+
+    // Sort by points (descending) and get top 5
+    userData.sort((a, b) => b.points - a.points);
+    const top5 = userData.slice(0, 5);
+
+    // Save top 5 users to Firestore (for example, a "TopUsersChart" collection)
+    const chartRef = db.collection('TopUsersChart').doc('latest'); // Overwrites a "latest" record
+    await chartRef.set({ 
+        timestamp: new Date(),
+        topUsers: top5
+    });
+
+    // Extract data for the chart
+    const labels = top5.map(user => user.name);
+    const data = top5.map(user => user.points);
+
+    // Display chart
+    renderTop5UsersChart(labels, data);
+}
+
+// Render the chart
+function renderTop5UsersChart(labels, data) {
+    const ctx = document.getElementById('topUsersChart').getContext('2d');
+
+    // Destroy old chart instance if exists (to avoid duplicates)
+    if (topUsersChart !== null) {
+        topUsersChart.destroy();
+    }
+
+    // Create new chart
+    topUsersChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Points',
+                data: data,
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(153, 102, 255, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+// Load top 5 users on page load
+fetchAndSaveTop5UserPoints();
+</script>
+
+</body>
+</html>

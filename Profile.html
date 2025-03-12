@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://kit.fontawesome.com/27fa1ccf28.js" crossorigin="anonymous"></script>
+    <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <title>Cverde Admin - Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="Profile.css">
+</head>
+<body>
+
+<!-- Fixed Sidebar -->
+<nav id="sidebar">
+    <div class="pt-3">
+        <h4 class="text-white ps-3">Admin</h4>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="Dashboard.html">Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="Content_Management.html">Content Management</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="User_Management.html">User Management</a>
+            </li>
+          
+        </ul>
+    </div>
+</nav>
+
+<!-- Fixed Top Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Cverde</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item"><a class="nav-link active" href="Admin_Profile.html">Profile</a></li>
+                
+                <li class="nav-item"><a class="nav-link" href="Login.html">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content Area -->
+<div class="main">
+    <h2 class="mb-4">Admin Profile</h2>
+
+    <div class="card p-4">
+        <div class="row">
+            <div class="col-md-4 text-center">
+                <img src="https://via.placeholder.com/150" class="rounded-circle mb-3" alt="Admin Profile Picture">
+                <h5>Admin Name</h5>
+                <p class="text-muted">Administrator</p>
+            </div>
+            <div class="col-md-8">
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <th scope="row">Username:</th>
+                            <td>admin_user</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Email:</th>
+                            <td>admin@cverde.com</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Phone:</th>
+                            <td>093 456 71890</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Role:</th>
+                            <td>Admin</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Join Date:</th>
+                            <td>January 15, 2023</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-4 text-end">
+            <button class="btn btn-primary btn-sm">Edit Profile</button>
+            <button class="btn btn-secondary btn-sm">Change Password</button>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

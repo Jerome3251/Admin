@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Font Awesome -->
+  <script src="https://kit.fontawesome.com/27fa1ccf28.js" crossorigin="anonymous"></script>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="dashboard.css" />
+  <title>Dashboard</title>
+</head>
+<body>
+  <!-- Fixed Sidebar -->
+  <nav id="sidebar">
+    <div class="pt-3">
+      <h4 class="text-white ps-3">Admin</h4>
+      <ul class="nav flex-column">
+        <li class="nav-item"><a class="nav-link active" href="#">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="Content_Management.html">Content Management</a></li>
+        <li class="nav-item"><a class="nav-link" href="User_Management.html">User Management</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Fixed Top Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Cverde</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+              data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+              aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <!-- Logout triggers the modal -->
+          <li class="nav-item">
+            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <div class="main">
+    <div class="cards">
+      <div class="card">
+        <div class="card-content">
+          <div class="number" id="totalUsers">Loading...</div>
+          <div class="card-name">Total Register</div>
+        </div>
+        <div class="icon-box">
+          <i class="fa-solid fa-users"></i>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-content">
+          <div class="number" id="highPointUser">Loading...</div>
+          <div class="card-name">User High Points</div>
+        </div>
+        <div class="icon-box">
+          <i class="fa-solid fa-percent"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top 5 High Points Users Chart -->
+    <div class="cardss">
+      <div class="charts">
+        <div class="chart">
+          <h2>Top 5 High Points Users</h2>
+          <div class="chart-container">
+            <canvas id="topUsersChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Table with Filter -->
+    <div class="cardsss">
+      <div class="chart1">
+        <h2>Users</h2>
+        <!-- Filter Input -->
+        <div class="mb-3">
+          <input type="text" id="userFilter" class="form-control" placeholder="Filter by Student ID, Username, or Email..." onkeyup="filterUsers()">
+        </div>
+        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+          <table class="table table-striped table-bordered" id="userDashboardTable">
+            <thead class="table-dark">
+              <tr>
+                <th>Student ID</th>
+                <th>Username</th>
+                <th>Email Accounts</th>
+              </tr>
+            </thead>
+            <tbody id="userTableRows">
+              <!-- Data from Firestore will load here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logout Confirmation Modal -->
+  <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to logout?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="confirmLogout()">Logout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase & Data Loading Script -->
+  <script type="module">
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      doc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    // Import Firebase Auth modules for logout functionality
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+
+    // 1) Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-95tG2D_t9y-N8O4iuhJVkNCWyDGCklE",
+      authDomain: "login-register-firebase-dc2df.firebaseapp.com",
+      projectId: "login-register-firebase-dc2df",
+      storageBucket: "login-register-firebase.appspot.com",
+      messagingSenderId: "537741740420",
+      appId: "1:537741740420:web:771f22512b768ca17ab5d1"
+    };
+
+    // 2) Initialize Firebase, Firestore, and Auth
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    /***********************************************************
+     * 3) loadUsersIntoTable - from 'users' collection
+     ***********************************************************/
+    async function loadUsersIntoTable() {
+      const usersCollection = collection(db, "users");
+      const querySnapshot = await getDocs(usersCollection);
+
+      const tableBody = document.getElementById('userTableRows');
+      tableBody.innerHTML = ''; // Clear existing rows
+
+      querySnapshot.forEach((docSnap) => {
+        const userData = docSnap.data();
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${userData.studentID || 'N/A'}</td>
+          <td>${userData.username || 'N/A'}</td>
+          <td>${userData.email || 'N/A'}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    /***********************************************************
+     * 4) getTotalUsers - from 'users' collection
+     ***********************************************************/
+    async function getTotalUsers() {
+      const usersCollection = collection(db, "users");
+      const querySnapshot = await getDocs(usersCollection);
+      document.getElementById('totalUsers').innerText = querySnapshot.size;
+    }
+
+    /***********************************************************
+     * 5) loadTopUserPoints - from 'Games' + fetch user data
+     ***********************************************************/
+     async function loadTopUserPoints() {
+  const gamesCollection = collection(db, "Games");
+  const snapshot = await getDocs(gamesCollection);
+
+  const userPointsArray = [];
+
+  for (const docSnap of snapshot.docs) {
+    const gameData = docSnap.data();
+    const userId = docSnap.id; // e.g. "Jonr"
+
+    // Attempt to get 'points' from the 'Games' doc
+    const points = gameData.points || 0;
+
+    // Fetch user data using the userId
+    const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+
+    let displayName = userId; // Fallback to userId if user not found
+    if (userSnap.exists()) {
+      const userData = userSnap.data();
+      displayName = userData.username || userId; // Use username only
+    }
+
+    userPointsArray.push({
+      name: displayName,
+      points: points
+    });
+  }
+
+  // Sort descending by points
+  userPointsArray.sort((a, b) => b.points - a.points);
+
+  // Take top 5
+  const top5 = userPointsArray.slice(0, 5);
+
+  // Update "User High Points" card with the highest point user's username
+  if (top5.length > 0) {
+    document.getElementById('highPointUser').innerText =
+      `${top5[0].name} : ${top5[0].points}`;
+  } else {
+    document.getElementById('highPointUser').innerText = 'No Data';
+  }
+
+  // Prepare data for Chart.js
+  const labels = top5.map(item => item.name);
+  const dataPoints = top5.map(item => item.points);
+
+  // Create the bar chart
+  const ctx = document.getElementById('topUsersChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Points',
+        data: dataPoints,
+        backgroundColor: [
+          'rgba(75, 192, 192, 0.6)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(255, 99, 132, 1)',
+          'rgba(153, 102, 255, 1)',
+          'rgba(54, 162, 235, 0.6)'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            font: {
+              size: 14, // Increase font size for Y-axis numbers
+              weight: 'bold'
+            }
+          }
+        },
+        x: {
+          ticks: {
+            font: {
+              size: 16, // Increase font size for X-axis labels (Usernames)
+              weight: 'bold'
+            }
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false // Hide legend since it's self-explanatory
+        }
+      }
+    }
+  });
+}
+
+
+
+    
+
+    /***********************************************************
+     * 6) filterUsers - filter the user table
+     ***********************************************************/
+    window.filterUsers = function() {
+      const filter = document.getElementById('userFilter').value.toUpperCase();
+      const table = document.getElementById('userDashboardTable');
+      const tbody = table.getElementsByTagName('tbody')[0];
+      const rows = tbody.getElementsByTagName('tr');
+      
+      for (let i = 0; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName('td');
+        const studentID = cells[0].textContent.toUpperCase();
+        const username = cells[1].textContent.toUpperCase();
+        const email = cells[2].textContent.toUpperCase();
+        
+        if (studentID.indexOf(filter) > -1 || username.indexOf(filter) > -1 || email.indexOf(filter) > -1) {
+          rows[i].style.display = "";
+        } else {
+          rows[i].style.display = "none";
+        }
+      }
+    };
+
+    /***********************************************************
+     * 7) On window load, fetch data & render
+     ***********************************************************/
+    window.addEventListener('load', () => {
+      loadUsersIntoTable();
+      getTotalUsers();
+      loadTopUserPoints();
+    });
+
+    /***********************************************************
+     * 8) Logout handler using Firebase Auth
+     ***********************************************************/
+    window.confirmLogout = function() {
+      signOut(auth)
+        .then(() => {
+          const logoutModal = bootstrap.Modal.getInstance(document.getElementById('logoutModal'));
+          logoutModal.hide();
+          window.location.href = "Login.html";
+        })
+        .catch((error) => {
+          console.error("Error during logout:", error);
+        });
+    };
+  </script>
+
+  <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>
