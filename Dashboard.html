@@ -23,8 +23,30 @@
       <!-- Admin Label & Brand -->
       <div class="d-flex align-items-center">
         <span class="navbar-text text-secondary me-2 fw-bold"></span>
-        <a class="navbar-brand fw-bold" href="#">Cverde</a>
+        <a class="navbar-brand fw-bold" href="#">
+            <img id="logo" src="images-removebg-preview.png" alt="Logo" height="40">
+          </a>
+
       </div>
+      <script>
+        // Image paths
+        const images = ["images-removebg-preview.png", "Img-removebg-preview.png"];
+        let index = 0;
+      
+        function changeLogo() {
+          index = (index + 1) % images.length;
+          const logo = document.getElementById("logo");
+          logo.style.opacity = 0; // Fade out
+          setTimeout(() => {
+            logo.src = images[index];
+            logo.style.opacity = 1; // Fade in
+          }, 500); // Transition delay
+        }
+      
+        // Change logo every 3 seconds
+        setInterval(changeLogo, 3000);
+      </script>
+
 
       <!-- Navbar Toggler -->
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCombined"
@@ -98,7 +120,7 @@
       <div class="chart1">
         <h2>Users</h2>
         <!-- Filter Input -->
-        <div class="mb-3">
+        <div class="filter-container mb-3">
           <input type="text" id="userFilter" class="form-control" placeholder="Filter by Student ID, Username, or Email..." onkeyup="filterUsers()">
         </div>
         <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
@@ -106,7 +128,15 @@
             <thead class="table-dark">
               <tr>
                 <th>Student ID</th>
-                <th>Username</th>
+                <th>
+                    Username
+                    <span class="sort-arrow" onclick="sortTable('asc')">
+                      <i class="fas fa-arrow-up"></i>
+                    </span>
+                    <span class="sort-arrow" onclick="sortTable('desc')">
+                      <i class="fas fa-arrow-down"></i>
+                    </span>
+                  </th>
                 <th>Email Accounts</th>
               </tr>
             </thead>
@@ -161,6 +191,26 @@
       messagingSenderId: "537741740420",
       appId: "1:537741740420:web:771f22512b768ca17ab5d1"
     };
+    window.sortTable = function(order) {
+  const table = document.getElementById('userDashboardTable');
+  const tbody = table.getElementsByTagName('tbody')[0];
+  const rows = Array.from(tbody.getElementsByTagName('tr'));
+
+  rows.sort((a, b) => {
+    const usernameA = a.cells[1].textContent.trim().toLowerCase();
+    const usernameB = b.cells[1].textContent.trim().toLowerCase();
+
+    if (order === 'asc') {
+      return usernameA.localeCompare(usernameB);
+    } else {
+      return usernameB.localeCompare(usernameA);
+    }
+  });
+
+  // Append sorted rows back to the table body
+  tbody.innerHTML = "";
+  rows.forEach(row => tbody.appendChild(row));
+};
 
     // 2) Initialize Firebase, Firestore, and Auth
     const app = initializeApp(firebaseConfig);
